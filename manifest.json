@@ -2,7 +2,7 @@
   "name": "Emergency Response System",
   "short_name": "EmergencyApp",
   "description": "Save and share emergency medical information - accessible even when phone is locked",
-  "start_url": "/",
+  "start_url": "/emergency-app/",
   "display": "standalone",
   "theme_color": "#FF0000",
   "background_color": "#FFFFFF",
