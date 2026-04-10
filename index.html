@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#FF0000">
+    <title>Emergency Response System</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Emergency Card Style */
+        .emergency-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border: 3px solid #ff0000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255,0,0,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255,0,0,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+        }
+
+        .emergency-header {
+            background: #ff0000;
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .emergency-header h1 {
+            font-size: 24px;
+        }
+
+        .info-row {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #333;
+            margin-top: 5px;
+        }
+
+        .blood-group {
+            color: #ff0000;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .contact-card {
+            background: #f0f0f0;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .contact-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .contact-info p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .contact-buttons button {
+            margin: 5px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .call-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .sms-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        /* Form Styles */
+        .form-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            margin-top: 20px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #764ba2;
+        }
+
+        .logout-btn {
+            background: #ff4444;
+        }
+
+        .switch-link {
+            text-align: center;
+            margin-top: 15px;
+            color: #667eea;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .notification-banner {
+            background: #ff9800;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .donor-badge {
+            background: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-size: 18px;
+        }
+
+        .emergency-note {
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+            font-size: 12px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .contact-input {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+
+        .success-badge {
+            background: #4CAF50;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading hidden">
+            <h3>⏳ Loading...</h3>
+        </div>
+
+        <!-- Emergency View (Public - Accessible from Lock Screen) -->
+        <div id="emergencyView" class="hidden">
+            <div class="emergency-card" id="emergencyCard">
+                <!-- Dynamic content injected here -->
+            </div>
+            <div class="emergency-note">
+                ⚡ This information is accessible even when phone is locked<br>
+                📱 Tap notification from lock screen to see this card
+            </div>
+        </div>
+
+        <!-- Login/Register View -->
+        <div id="authView">
+            <div class="form-container">
+                <h2 style="text-align: center; margin-bottom: 20px;" id="authTitle">🔐 Emergency App Login</h2>
+                
+                <div id="loginForm">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                    <button onclick="login()">Login</button>
+                    <p class="switch-link" onclick="showRegister()">Don't have an account? Register</p>
+                </div>
+
+                <div id="registerForm" class="hidden">
+                    <input type="email" id="regEmail" placeholder="Email *" required>
+                    <input type="password" id="regPassword" placeholder="Password *" required>
+                    <input type="text" id="regFullName" placeholder="Full Name *" required>
+                    <input type="text" id="regCnic" placeholder="CNIC Number *" required>
+                    <select id="regBloodGroup">
+                        <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                        <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+                    </select>
+                    <input type="text" id="regAddress" placeholder="Address *" required>
+                    <input type="text" id="regAllergies" placeholder="Allergies (e.g., Penicillin)">
+                    <input type="text" id="regChronicDisease" placeholder="Chronic Diseases (e.g., Diabetes)">
+                    <label style="display: flex; align-items: center; margin: 10px 0;">
+                        <input type="checkbox" id="regOrganDonor"> 
+                        <span style="margin-left: 10px;">✅ I am an Organ Donor</span>
+                    </label>
+                    
+                    <h3 style="margin-top: 20px;">📞 Emergency Contacts (Max 3)</h3>
+                    <div id="contactsContainer">
+                        <div class="contact-input">
+                            <input type="text" placeholder="Contact Name" class="contactName">
+                            <input type="text" placeholder="Relation (Father/Mother)" class="contactRelation">
+                            <input type="tel" placeholder="Phone Number" class="contactPhone">
+                        </div>
+                    </div>
+                    <button onclick="addContactField()" style="background: #2196F3;">+ Add Another Contact</button>
+                    <button onclick="register()" style="background: #4CAF50; margin-top: 10px;">Register</button>
+                    <p class="switch-link" onclick="showLogin()">Already have an account? Login</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard View (After Login - Can Edit Profile) -->
+        <div id="dashboardView" class="hidden">
+            <div class="form-container">
+                <h2 style="text-align: center;">👤 My Emergency Profile</h2>
+                <div id="dashboardContent"></div>
+                <button onclick="showEditProfile()" style="background: #FF9800;">✏️ Edit My Information</button>
+                <button onclick="logout()" class="logout-btn">🚪 Logout</button>
+                <button onclick="showEmergencyCard()" style="background: #ff0000; margin-top: 10px;">📱 View Emergency Card</button>
+            </div>
+        </div>
+
+        <!-- Edit Profile View -->
+        <div id="editView" class="hidden">
+            <div class="form-container">
+                <h2 style="text-align: center;">✏️ Edit Your Information</h2>
+                <div id="editForm"></div>
+                <button onclick="saveProfile()" style="background: #4CAF50;">💾 Save Changes</button>
+                <button onclick="showDashboard()" class="logout-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK with YOUR Config -->
+    <script type="module">
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmXmO0h6IeJPlenF3pZWuCyMuzxxZN-Kk",
+            authDomain: "emergency-response-app-9048.firebaseapp.com",
+            projectId: "emergency-response-app-9048",
+            storageBucket: "emergency-response-app-9048.firebasestorage.app",
+            messagingSenderId: "399548418994",
+            appId: "1:399548418994:web:7f83188c9b7d521528b2ab",
+            measurementId: "G-M6KHFMEC9Z"
+        };
+
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Make functions global
+        window.auth = auth;
+        window.db = db;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signOut = signOut;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
+        window.updateDoc = updateDoc;
+        window.onAuthStateChanged = onAuthStateChanged;
+
+        // Monitor auth state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("✅ User logged in:", user.uid);
+                loadUserDashboard(user.uid);
+                startPersistentNotification();
+            } else {
+                console.log("❌ User logged out");
+                showLogin();
+            }
+        });
+    </script>
+
+    <script>
+        // Global variables
+        let currentUserId = null;
+        let notificationInterval = null;
+
+        // UI Functions
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('authView').classList.remove('hidden');
+            document.getElementById('emergencyView').classList.add('hidden');
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('editView').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('authTitle').innerText = '🔐 Emergency App Login';
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            document.getElementById('authTitle').innerText = '📝 Register New Account';
+        }
+
+        function addContactField() {
+            const container = document.getElementById('contactsContainer');
+            if (container.children.length < 3) {
+                const newContact = document.createElement('div');
+                newContact.className = 'contact-input';
+                newContact.innerHTML = `
+                    <input type="text" placeholder="Contact Name" class="contactName">
+                    <input type="text" placeholder="Relation" class="contactRelation">
+                    <input type="tel" placeholder="Phone Number" class="contactPhone">
+                `;
+                container.appendChild(newContact);
+            } else {
+                alert('⚠️ Maximum 3 emergency contacts allowed');
+            }
+        }
+
+        async function register() {
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const fullName = document.getElementById('regFullName').value;
+            const cnic = document.getElementById('regCnic').value;
+            const bloodGroup = document.getElementById('regBloodGroup').value;
+            const address = document.getElementById('regAddress').value;
+            const allergies = document.getElementById('regAllergies').value;
+            const chronicDisease = document.getElementById('regChronicDisease').value;
+            const organDonor = document.getElementById('regOrganDonor').checked;
+
+            if (!email || !password || !fullName || !cnic || !address) {
+                alert('❌ Please fill all required fields (*)');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('❌ Password must be at least 6 characters');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // Create user in Firebase Auth
+                const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, password);
+                const user = userCredential.user;
+
+                // Collect emergency contacts
+                const contacts = [];
+                const contactDivs = document.querySelectorAll('#contactsContainer .contact-input');
+                for (let div of contactDivs) {
+                    const name = div.querySelector('.contactName').value;
+                    const relation = div.querySelector('.contactRelation').value;
+                    const phone = div.querySelector('.contactPhone').value;
+                    if (name && phone) {
+                        contacts.push({ name, relation, phone });
+                    }
+                }
+
+                // Save user data to Firestore
+                const userData = {
+                    uid: user.uid,
+                    email: email,
+                    fullName: fullName,
+                    cnic: cnic,
+                    bloodGroup: bloodGroup,
+                    address: address,
+                    allergies: allergies || '',
+                    chronicDisease: chronicDisease || '',
+                    organDonor: organDonor,
+                    emergencyContacts: contacts.slice(0, 3),
+                    createdAt: new Date().toISOString()
+                };
+
+                await window.setDoc(window.doc(window.db, "users", user.uid), userData);
+                await window.setDoc(window.doc(window.db, "emergencyData", user.uid), userData);
+
+                hideLoading();
+                alert('✅ Registration successful! You are now logged in.');
+                // Auth state change will show dashboard
+            } catch (error) {
+                hideLoading();
+                if (error.code === 'auth/email-already-in-use') {
+                    alert('❌ This email is already registered. Please login instead.');
+                } else {
+                    alert('❌ Registration failed: ' + error.message);
+                }
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                alert('❌ Please enter email and password');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                await window.signInWithEmailAndPassword(window.auth, email, password);
+                hideLoading();
+                // Auth state change will handle showing dashboard
+            } catch (error) {
+                hideLoading();
+                if (error.code === 'auth/user-not-found') {
+                    alert('❌ No account found. Please register first.');
+                } else if (error.code === 'auth/wrong-password') {
+                    alert('❌ Wrong password. Please try again.');
+                } else {
+                    alert('❌ Login failed: ' + error.message);
+                }
+            }
+        }
+
+        async function loadUserDashboard(uid) {
+            currentUserId = uid;
+            try {
+                const docRef = window.doc(window.db, "users", uid);
+                const docSnap = await window.getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const userData = docSnap.data();
+                    displayDashboard(userData);
+                    showDashboard();
+                } else {
+                    console.error("No user data found");
+                }
+            } catch (error) {
+                console.error("Error loading dashboard:", error);
+                alert('Error loading profile');
+            }
+        }
+
+        function displayDashboard(userData) {
+            const dashboard = document.getElementById('dashboardContent');
+            dashboard.innerHTML = `
+                <div class="info-row">
+                    <div class="info-label">📧 Email</div>
+                    <div class="info-value">${userData.email}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">👤 Full Name</div>
+                    <div class="info-value"><strong>${userData.fullName}</strong></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">🆔 CNIC</div>
+                    <div class="info-value">${userData.cnic}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">🩸 Blood Group</div>
+                    <div class="info-value blood-group">${userData.bloodGroup}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">📍 Address</div>
+                    <div class="info-value">${userData.address}</div>
+                </div>
+                ${userData.allergies ? `
+                <div class="info-row">
+                    <div class="info-label">⚠️ Allergies</div>
+                    <div class="info-value">${userData.allergies}</div>
+                </div>` : ''}
+                ${userData.chronicDisease ? `
+                <div class="info-row">
+                    <div class="info-label">🏥 Chronic Diseases</div>
+                    <div class="info-value">${userData.chronicDisease}</div>
+                </div>` : ''}
+                <div class="info-row">
+                    <div class="info-label">❤️ Organ Donor</div>
+                    <div class="info-value">${userData.organDonor ? '✅ Yes - Registered Organ Donor' : '❌ No'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">📞 Emergency Contacts</div>
+                    <div class="info-value">
+                        ${userData.emergencyContacts.map(c => `📱 ${c.name} (${c.relation}): ${c.phone}`).join('<br>') || 'No contacts added'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function showDashboard() {
+            document.getElementById('authView').classList.add('hidden');
+            document.getElementById('emergencyView').classList.add('hidden');
+            document.getElementById('dashboardView').classList.remove('hidden');
+            document.getElementById('editView').classList.add('hidden');
+        }
+
+        function showEditProfile() {
+            loadProfileForEdit();
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('editView').classList.remove('hidden');
+        }
+
+        async function loadProfileForEdit() {
+            if (!currentUserId) return;
+            
+            const docRef = window.doc(window.db, "users", currentUserId);
+            const docSnap = await window.getDoc(docRef);
+            
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+                const editForm = document.getElementById('editForm');
+                editForm.innerHTML = `
+                    <input type="text" id="editFullName" value="${userData.fullName.replace(/"/g, '&quot;')}" placeholder="Full Name">
+                    <input type="text" id="editCnic" value="${userData.cnic}" placeholder="CNIC">
+                    <select id="editBloodGroup">
+                        ${['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(bg => `<option ${bg === userData.bloodGroup ? 'selected' : ''}>${bg}</option>`).join('')}
+                    </select>
+                    <input type="text" id="editAddress" value="${userData.address.replace(/"/g, '&quot;')}" placeholder="Address">
+                    <input type="text" id="editAllergies" value="${(userData.allergies || '').replace(/"/g, '&quot;')}" placeholder="Allergies">
+                    <input type="text" id="editChronicDisease" value="${(userData.chronicDisease || '').replace(/"/g, '&quot;')}" placeholder="Chronic Diseases">
+                    <label><input type="checkbox" id="editOrganDonor" ${userData.organDonor ? 'checked' : ''}> ✅ Organ Donor</label>
+                    <h3>📞 Emergency Contacts</h3>
+                    <div id="editContacts">
+                        ${userData.emergencyContacts.map((c, i) => `
+                            <div class="contact-input">
+                                <input type="text" id="contactName${i}" value="${c.name.replace(/"/g, '&quot;')}" placeholder="Name">
+                                <input type="text" id="contactRelation${i}" value="${c.relation.replace(/"/g, '&quot;')}" placeholder="Relation">
+                                <input type="tel" id="contactPhone${i}" value="${c.phone}" placeholder="Phone">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        async function saveProfile() {
+            if (!currentUserId) return;
+
+            showLoading();
+
+            try {
+                // Update contacts
+                const newContacts = [];
+                for (let i = 0; i < 3; i++) {
+                    const name = document.getElementById(`contactName${i}`)?.value;
+                    const relation = document.getElementById(`contactRelation${i}`)?.value;
+                    const phone = document.getElementById(`contactPhone${i}`)?.value;
+                    if (name && phone) {
+                        newContacts.push({ name, relation, phone });
+                    }
+                }
+
+                const updatedData = {
+                    fullName: document.getElementById('editFullName').value,
+                    cnic: document.getElementById('editCnic').value,
+                    bloodGroup: document.getElementById('editBloodGroup').value,
+                    address: document.getElementById('editAddress').value,
+                    allergies: document.getElementById('editAllergies').value,
+                    chronicDisease: document.getElementById('editChronicDisease').value,
+                    organDonor: document.getElementById('editOrganDonor').checked,
+                    emergencyContacts: newContacts,
+                    updatedAt: new Date().toISOString()
+                };
+
+                // Update both collections
+                await window.updateDoc(window.doc(window.db, "users", currentUserId), updatedData);
+                await window.updateDoc(window.doc(window.db, "emergencyData", currentUserId), updatedData);
+
+                hideLoading();
+                alert('✅ Profile updated successfully!');
+                showDashboard();
+                await loadUserDashboard(currentUserId);
+            } catch (error) {
+                hideLoading();
+                alert('❌ Error saving profile: ' + error.message);
+            }
+        }
+
+        async function showEmergencyCard() {
+            if (!currentUserId) return;
+            
+            showLoading();
+            
+            try {
+                const docRef = window.doc(window.db, "emergencyData", currentUserId);
+                const docSnap = await window.getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const userData = docSnap.data();
+                    displayEmergencyCard(userData);
+                    document.getElementById('dashboardView').classList.add('hidden');
+                    document.getElementById('emergencyView').classList.remove('hidden');
+                } else {
+                    alert('No emergency data found');
+                }
+            } catch (error) {
+                alert('❌ Error loading emergency card: ' + error.message);
+            }
+            
+            hideLoading();
+        }
+
+        function displayEmergencyCard(userData) {
+            const contactsHtml = (userData.emergencyContacts || []).map(contact => `
+                <div class="contact-card">
+                    <div class="contact-info">
+                        <h3>${contact.name}</h3>
+                        <p>${contact.relation || 'Emergency Contact'}</p>
+                        <p>📞 ${contact.phone}</p>
+                    </div>
+                    <div class="contact-buttons">
+                        <button class="call-btn" onclick="window.location.href='tel:${contact.phone}'">📞 Call</button>
+                        <button class="sms-btn" onclick="window.location.href='sms:${contact.phone}'">✉️ SMS</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('emergencyCard').innerHTML = `
+                <div class="emergency-header">
+                    <h1>🚨 EMERGENCY MEDICAL CARD 🚨</h1>
+                    <p style="font-size: 12px; margin-top: 5px;">Show this to first responders</p>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value"><strong>${userData.fullName}</strong></div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">CNIC / ID</div>
+                    <div class="info-value">${userData.cnic}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Blood Group</div>
+                    <div class="info-value blood-group">${userData.bloodGroup}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Address</div>
+                    <div class="info-value">${userData.address}</div>
+                </div>
+                ${userData.allergies ? `
+                <div class="info-row">
+                    <div class="info-label">⚠️ Allergies</div>
+                    <div class="info-value">${userData.allergies}</div>
+                </div>` : ''}
+                ${userData.chronicDisease ? `
+                <div class="info-row">
+                    <div class="info-label">🏥 Chronic Diseases</div>
+                    <div class="info-value">${userData.chronicDisease}</div>
+                </div>` : ''}
+                <div class="info-row">
+                    <div class="info-label">Organ Donor</div>
+                    <div class="info-value">${userData.organDonor ? '<span class="donor-badge">✅ Registered Organ Donor</span>' : '❌ Not registered'}</div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div class="info-label" style="font-size: 16px;">📞 EMERGENCY CONTACTS</div>
+                    ${contactsHtml || '<p>No contacts added</p>'}
+                </div>
+            `;
+        }
+
+        function startPersistentNotification() {
+            // Request notification permission
+            if ('Notification' in window && Notification.permission !== 'granted') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        showFirstNotification();
+                    }
+                });
+            } else if (Notification.permission === 'granted') {
+                showFirstNotification();
+            }
+
+            // Show notification every hour (persistent)
+            if (notificationInterval) clearInterval(notificationInterval);
+            
+            notificationInterval = setInterval(() => {
+                if (Notification.permission === 'granted' && currentUserId) {
+                    new Notification('🚨 Emergency Access Available', {
+                        body: 'Tap to view medical information without unlocking your phone',
+                        icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="red"%3E%3Cpath d="M12 2L1 21h22L12 2z"%3E%3C/path%3E%3C/svg%3E',
+                        requireInteraction: true,
+                        tag: 'emergency-access',
+                        renotify: true
+                    });
+                }
+            }, 3600000); // Every hour
+        }
+
+        function showFirstNotification() {
+            new Notification('✅ Emergency App Ready', {
+                body: 'Your emergency info is now accessible from lock screen. Tap here to view.',
+                icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="green"%3E%3Cpath d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"%3E%3C/path%3E%3C/svg%3E',
+                requireInteraction: true
+            });
+        }
+
+        async function logout() {
+            if (notificationInterval) clearInterval(notificationInterval);
+            await window.signOut(window.auth);
+            currentUserId = null;
+            showLogin();
+        }
+    </script>
+</body>
+</html>
